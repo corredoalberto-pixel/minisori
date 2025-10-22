@@ -99,14 +99,17 @@
   tg.ready();
   tg.MainButton.hide();
 
-  // Detecta si se ejecuta dentro del navegador interno de Telegram
+  // Si se ejecuta dentro del navegador interno de Telegram, mostrar aviso
   if (navigator.userAgent.includes("Telegram")) {
     document.body.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;text-align:center;">
         <h2 style="color:#e60000;">Mini Sori · Bot Sori</h2>
         <p style="font-size:18px;margin:20px;">⚠️ Telegram bloquea el uso de cámara dentro de su app.</p>
         <p>Por favor abre Mini Sori en tu navegador para usar la cámara:</p>
-        <a href="https://minisori-corredoalbertos-projects.vercel.app" style="color:#00ff6a;font-size:20px;margin-top:20px;text-decoration:none;">🌐 Abrir en navegador</a>
+        <a href="https://corredoalberto-pixel.github.io/minisori/"
+           style="color:#00ff6a;font-size:20px;margin-top:20px;text-decoration:none;">
+           🌐 Abrir en navegador
+        </a>
       </div>
     `;
   } else {
@@ -171,4 +174,3 @@
 
 </body>
 </html>
-
