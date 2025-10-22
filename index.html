@@ -23,12 +23,8 @@
       letter-spacing: 1px;
       font-weight: bold;
     }
-    .logo-white {
-      color: #fff;
-    }
-    .logo-red {
-      color: #e60000;
-    }
+    .logo-white { color: #fff; }
+    .logo-red { color: #e60000; }
     h2 {
       color: #e60000;
       margin: 12px 0;
@@ -39,9 +35,7 @@
       border-radius: 12px;
       box-shadow: 0 0 20px rgba(230, 0, 0, 0.3);
     }
-    #canvas {
-      display: none;
-    }
+    #canvas { display: none; }
     #marco {
       position: absolute;
       top: 50%;
@@ -90,7 +84,7 @@
   </header>
 
   <h2>📷 Escanea tu código QR</h2>
-  <div style="position: relative; display: inline-block;">
+  <div id="contenedorCamara" style="position: relative; display: inline-block;">
     <video id="video" autoplay playsinline></video>
     <div id="marco"></div>
     <div id="mensaje">✅ Escaneo exitoso</div>
@@ -105,67 +99,76 @@
   tg.ready();
   tg.MainButton.hide();
 
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const marco = document.getElementById('marco');
-  const mensaje = document.getElementById('mensaje');
-  const ctx = canvas.getContext('2d');
+  // Detecta si se ejecuta dentro del navegador interno de Telegram
+  if (navigator.userAgent.includes("Telegram")) {
+    document.body.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;text-align:center;">
+        <h2 style="color:#e60000;">Mini Sori · Bot Sori</h2>
+        <p style="font-size:18px;margin:20px;">⚠️ Telegram bloquea el uso de cámara dentro de su app.</p>
+        <p>Por favor abre Mini Sori en tu navegador para usar la cámara:</p>
+        <a href="https://minisori-corredoalbertos-projects.vercel.app" style="color:#00ff6a;font-size:20px;margin-top:20px;text-decoration:none;">🌐 Abrir en navegador</a>
+      </div>
+    `;
+  } else {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const marco = document.getElementById('marco');
+    const mensaje = document.getElementById('mensaje');
+    const ctx = canvas.getContext('2d');
 
-  async function iniciarCamara() {
-    try {
-      // Preferimos la cámara trasera, pero si falla probamos cualquier cámara disponible
-      const constraints = { video: { facingMode: { ideal: "environment" } } };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      video.srcObject = stream;
-      marco.style.display = "block";
-      requestAnimationFrame(scan);
-    } catch (err) {
-      console.error("Error accediendo a la cámara:", err);
-      alert("⚠️ No se pudo acceder a la cámara. Revisa los permisos en Telegram o prueba abrir en navegador.");
-    }
-  }
-
-  function detenerCamara() {
-    if (video.srcObject) {
-      video.srcObject.getTracks().forEach(t => t.stop());
-      video.srcObject = null;
-    }
-  }
-
-  let enviado = false;
-
-  async function scan() {
-    if (enviado) return;
-
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(img.data, img.width, img.height);
-
-      if (code) {
-        enviado = true;
-        mensaje.style.display = "block";
-        detenerCamara();
-        mensaje.innerText = "✅ Escaneo exitoso";
-        setTimeout(() => {
-          tg.sendData(code.data.trim());
-          mensaje.innerText = "✅ Enviado correctamente";
-        }, 600);
-        setTimeout(() => tg.close(), 2000);
-        return;
+    async function iniciarCamara() {
+      try {
+        const constraints = { video: { facingMode: { ideal: "environment" } } };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
+        marco.style.display = "block";
+        requestAnimationFrame(scan);
+      } catch (err) {
+        console.error("Error accediendo a la cámara:", err);
+        alert("⚠️ No se pudo acceder a la cámara. Revisa los permisos o abre en navegador.");
       }
     }
-    if (!enviado) requestAnimationFrame(scan);
-  }
 
-  // Espera a que el usuario dé permiso antes de iniciar
-  tg.onEvent('mainButtonClicked', iniciarCamara);
-  iniciarCamara();
+    function detenerCamara() {
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(t => t.stop());
+        video.srcObject = null;
+      }
+    }
+
+    let enviado = false;
+
+    async function scan() {
+      if (enviado) return;
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(img.data, img.width, img.height);
+
+        if (code) {
+          enviado = true;
+          mensaje.style.display = "block";
+          detenerCamara();
+          mensaje.innerText = "✅ Escaneo exitoso";
+          setTimeout(() => {
+            tg.sendData(code.data.trim());
+            mensaje.innerText = "✅ Enviado correctamente";
+          }, 600);
+          setTimeout(() => tg.close(), 2000);
+          return;
+        }
+      }
+      if (!enviado) requestAnimationFrame(scan);
+    }
+
+    tg.onEvent('mainButtonClicked', iniciarCamara);
+    iniciarCamara();
+  }
 </script>
 
 </body>
 </html>
-
 
